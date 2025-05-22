@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weathery..</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <h1>Weathery..</h1>
+        <h3>By Enter your city name or by using current location you can find your area wheather.</h3>
+      
+        <!-- Flex wrapper for both blocks -->
+        <div class="weather-wrapper">
+          <!-- City Weather Block -->
+          <div class="weather-block">
+            <h2>Search by City</h2>
+            <input type="text" id="cityInput" placeholder="Enter city name" />
+            <button onclick="getWeatherByCity()">Get Weather</button>
+          </div>
+      
+          <!-- Location Weather Block -->
+          <div class="weather-block">
+            <h2>Current Location Weather</h2>
+            <button onclick="getWeatherByLocation()">Use My Location</button>
+          </div>
+        </div>
+      
+        <div id="weatherResult"></div>
+      </div>
+
+  <script>
+     const apiKey = "8772d0a00b5936186cb594f591ad9da8"; 
+
+function getWeatherByCity() {
+  const city = document.getElementById("cityInput").value;
+  const resultDiv = document.getElementById("weatherResult");
+
+  if (city === "") {
+    resultDiv.innerHTML = "Please enter a city name.";
+    return;
+  }
+
+  const url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+  fetchWeather(url);
+}
+
+function getWeatherByLocation() {
+  const resultDiv = document.getElementById("weatherResult");
+
+  if (!navigator.geolocation) {
+    resultDiv.innerHTML = "Geolocation is not supported by your browser.";
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const lat = position.coords.latitude;
+      const lon = position.coords.longitude;
+
+      const url = `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric`;
+
+      fetchWeather(url);
+    },
+    (error) => {
+      resultDiv.innerHTML = "Location access denied or unavailable.";
+    }
+  );
+}
+
+function fetchWeather(url) {
+  const resultDiv = document.getElementById("weatherResult");
+
+  fetch(url)
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Weather data not found");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      const weatherHTML = `
+        <h2>${data.name}, ${data.sys.country}</h2>
+        <p><strong>Temperature:</strong> ${data.main.temp}°C</p>
+        <p><strong>Humidity:</strong> ${data.main.humidity}%</p>
+        <p><strong>Wind Speed:</strong> ${data.wind.speed} m/s</p>
+        <p><strong>Condition:</strong> ${data.weather[0].description}</p>
+        <img src="https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png" />
+      `;
+      resultDiv.innerHTML = weatherHTML;
+    })
+    .catch((error) => {
+      resultDiv.innerHTML = `<p style="color:red;">${error.message}</p>`;
+    });
+}
+
+  </script>
+</body>
+</html>
